@@ -167,7 +167,7 @@ func TestVerifyRelativeForRef(t *testing.T) {
 		entry.ID = entryID
 
 		err = VerifyRelativeForRef(testCtx, repo, policyEntry, entry, entry, policyEntry, refName)
-		assert.NotNil(t, err, "expected an error but got nil")
+		assert.NotNil(t, err)
 	})
 
 	t.Run("with recovery, commit-same, recovered by authorized user", func(t *testing.T) {
