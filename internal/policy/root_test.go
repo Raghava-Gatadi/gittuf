@@ -5,11 +5,10 @@ package policy
 
 import (
 	"testing"
-	"errors"
 
 	"github.com/gittuf/gittuf/internal/common/set"
 	"github.com/gittuf/gittuf/internal/signerverifier/ssh"
-	"github.com/gittuf/gittuf/internal/tuf"
+	tuf "github.com/gittuf/gittuf/internal/tuf"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -171,19 +170,19 @@ func TestDisableGitHubAppApprovals(t *testing.T) {
 }
 
 func TestUpdateRootThreshold(t *testing.T) {
-	key:= ssh.NewKeyFromBytes(t, rootPubKeyBytes)
+	key := ssh.NewKeyFromBytes(t, rootPubKeyBytes)
 
 	rootMetadata := InitializeRootMetadata(key)
 
-	newRootKey1:= ssh.NewKeyFromBytes(t, rootPubKeyBytes)
+	newRootKey1 := ssh.NewKeyFromBytes(t, rootPubKeyBytes)
 
-	newRootKey2:= ssh.NewKeyFromBytes(t, rootPubKeyBytes)
+	newRootKey2 := ssh.NewKeyFromBytes(t, rootPubKeyBytes)
 
 	rootMetadata, _ = AddRootKey(rootMetadata, newRootKey1)
 	rootMetadata, _ = AddRootKey(rootMetadata, newRootKey2)
 
 	updatedRootMetadata, err := UpdateRootThreshold(rootMetadata, 4)
-	assert.ErrorIs(t, err, errors.New("insufficient keys to meet threshold"))
+	assert.ErrorIs(t, err, tuf.ErrCannotMeetThreshold)
 	assert.Nil(t, updatedRootMetadata)
 
 	updatedRootMetadata, err = UpdateRootThreshold(rootMetadata, 0)
@@ -194,13 +193,13 @@ func TestUpdateRootThreshold(t *testing.T) {
 }
 
 func TestUpdateTargetsThreshold(t *testing.T) {
-	key:= ssh.NewKeyFromBytes(t, rootPubKeyBytes)
+	key := ssh.NewKeyFromBytes(t, rootPubKeyBytes)
 
 	rootMetadata := InitializeRootMetadata(key)
 
-	targetsKey1:= ssh.NewKeyFromBytes(t, rootPubKeyBytes)
+	targetsKey1 := ssh.NewKeyFromBytes(t, rootPubKeyBytes)
 
-	targetsKey2:= ssh.NewKeyFromBytes(t, rootPubKeyBytes)
+	targetsKey2 := ssh.NewKeyFromBytes(t, rootPubKeyBytes)
 
 	rootMetadata, err := AddTargetsKey(rootMetadata, targetsKey1)
 	assert.Nil(t, err)
@@ -208,7 +207,7 @@ func TestUpdateTargetsThreshold(t *testing.T) {
 	assert.Nil(t, err)
 
 	updatedRootMetadata, err := UpdateTargetsThreshold(rootMetadata, 4)
-	assert.ErrorIs(t, err, errors.New("insufficient keys to meet threshold"))
+	assert.ErrorIs(t, err, tuf.ErrCannotMeetThreshold)
 	assert.Nil(t, updatedRootMetadata)
 
 	updatedRootMetadata, err = UpdateTargetsThreshold(rootMetadata, 0)
