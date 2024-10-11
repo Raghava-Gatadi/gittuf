@@ -5,6 +5,7 @@ package policy
 
 import (
 	"testing"
+	"errors"
 
 	"github.com/gittuf/gittuf/internal/common/set"
 	"github.com/gittuf/gittuf/internal/signerverifier/ssh"
@@ -170,28 +171,19 @@ func TestDisableGitHubAppApprovals(t *testing.T) {
 }
 
 func TestUpdateRootThreshold(t *testing.T) {
-	key, err := tuf.LoadKeyFromBytes(rootKeyBytes)
-	if err != nil {
-		t.Fatal(err)
-	}
+	key:= ssh.NewKeyFromBytes(t, rootPubKeyBytes)
 
 	rootMetadata := InitializeRootMetadata(key)
 
-	newRootKey1, err := tuf.LoadKeyFromBytes(targets1KeyBytes)
-	if err != nil {
-		t.Fatal(err)
-	}
+	newRootKey1:= ssh.NewKeyFromBytes(t, rootPubKeyBytes)
 
-	newRootKey2, err := tuf.LoadKeyFromBytes(targets1KeyBytes)
-	if err != nil {
-		t.Fatal(err)
-	}
+	newRootKey2:= ssh.NewKeyFromBytes(t, rootPubKeyBytes)
 
-	rootMetadata = AddRootKey(rootMetadata, newRootKey1)
-	rootMetadata = AddRootKey(rootMetadata, newRootKey2)
+	rootMetadata, _ = AddRootKey(rootMetadata, newRootKey1)
+	rootMetadata, _ = AddRootKey(rootMetadata, newRootKey2)
 
 	updatedRootMetadata, err := UpdateRootThreshold(rootMetadata, 4)
-	assert.ErrorIs(t, err, ErrCannotMeetThreshold)
+	assert.ErrorIs(t, err, errors.New("insufficient keys to meet threshold"))
 	assert.Nil(t, updatedRootMetadata)
 
 	updatedRootMetadata, err = UpdateRootThreshold(rootMetadata, 0)
@@ -202,30 +194,21 @@ func TestUpdateRootThreshold(t *testing.T) {
 }
 
 func TestUpdateTargetsThreshold(t *testing.T) {
-	key, err := tuf.LoadKeyFromBytes(rootKeyBytes)
-	if err != nil {
-		t.Fatal(err)
-	}
+	key:= ssh.NewKeyFromBytes(t, rootPubKeyBytes)
 
 	rootMetadata := InitializeRootMetadata(key)
 
-	targetsKey1, err := tuf.LoadKeyFromBytes(targets1KeyBytes)
-	if err != nil {
-		t.Fatal(err)
-	}
+	targetsKey1:= ssh.NewKeyFromBytes(t, rootPubKeyBytes)
 
-	targetsKey2, err := tuf.LoadKeyFromBytes(targets1KeyBytes)
-	if err != nil {
-		t.Fatal(err)
-	}
+	targetsKey2:= ssh.NewKeyFromBytes(t, rootPubKeyBytes)
 
-	rootMetadata, err = AddTargetsKey(rootMetadata, targetsKey1)
+	rootMetadata, err := AddTargetsKey(rootMetadata, targetsKey1)
 	assert.Nil(t, err)
 	rootMetadata, err = AddTargetsKey(rootMetadata, targetsKey2)
 	assert.Nil(t, err)
 
 	updatedRootMetadata, err := UpdateTargetsThreshold(rootMetadata, 4)
-	assert.ErrorIs(t, err, ErrCannotMeetThreshold)
+	assert.ErrorIs(t, err, errors.New("insufficient keys to meet threshold"))
 	assert.Nil(t, updatedRootMetadata)
 
 	updatedRootMetadata, err = UpdateTargetsThreshold(rootMetadata, 0)
